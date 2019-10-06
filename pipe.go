@@ -1,6 +1,7 @@
-package piper
+package pipe
 
 import (
+	"encoding/json"
 	"io"
 	"log"
 	"os/exec"
@@ -73,12 +74,17 @@ func (a *App) Run() error {
 		itr = gro.NextShardIterator
 		log.Printf("num records: %d", len(gro.Records))
 		for _, r := range gro.Records {
-			log.Printf("record: %s", r.String())
+			pr := NewRecord(r)
+			prs, _ := json.MarshalIndent(pr, "", "    ")
+			log.Printf("record: %s", prs)
 			cmd := exec.Command(a.command, a.args...)
 			stdin, _ := cmd.StdinPipe()
-			io.WriteString(stdin, r.String())
+			io.WriteString(stdin, string(prs))
 			stdin.Close()
-			out, _ := cmd.Output()
+			out, err := cmd.Output()
+			if err != nil {
+				return errors.Wrap(err, "failed cmd")
+			}
 			log.Printf("cmd results: %s", out)
 			time.Sleep(5 * time.Second)
 		}
