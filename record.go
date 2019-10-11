@@ -9,8 +9,6 @@ import (
 
 // A description of a unique event within a stream.
 type Record struct {
-	_ struct{} `type:"structure"`
-
 	// The region in which the GetRecords request was received.
 	AwsRegion *string `locationName:"awsRegion" type:"string"`
 
@@ -77,20 +75,18 @@ func NewRecord(r *dynamodbstreams.Record) *Record {
 // A description of a single data modification that was performed on an item
 // in a DynamoDB table.
 type StreamRecord struct {
-	_ struct{} `type:"structure"`
-
 	// The approximate date and time when the stream record was created, in UNIX
 	// epoch time (http://www.epochconverter.com/) format.
 	ApproximateCreationDateTime *int64 `type:"long"`
 
 	// The primary key attribute(s) for the DynamoDB item that was modified.
-	Keys map[string]*AttributeValue `type:"map"`
+	Keys map[string]*AttributeValue `type:"map" json:",omitempty"`
 
 	// The item in the DynamoDB table as it appeared after it was modified.
-	NewImage map[string]*AttributeValue `type:"map"`
+	NewImage map[string]*AttributeValue `type:"map" json:",omitempty"`
 
 	// The item in the DynamoDB table as it appeared before it was modified.
-	OldImage map[string]*AttributeValue `type:"map"`
+	OldImage map[string]*AttributeValue `type:"map" json:",omitempty"`
 
 	// The sequence number of the stream record.
 	SequenceNumber *string `min:"21" type:"string"`
@@ -114,9 +110,9 @@ type StreamRecord struct {
 func NewStreamRecord(r *dynamodbstreams.StreamRecord) *StreamRecord {
 	return &StreamRecord{
 		ApproximateCreationDateTime: aws.Int64(r.ApproximateCreationDateTime.Unix()),
-		Keys:                        NewAttributeValue(r.Keys),
-		NewImage:                    NewAttributeValue(r.NewImage),
-		OldImage:                    NewAttributeValue(r.OldImage),
+		Keys:                        NewAttributeValueMap(r.Keys),
+		NewImage:                    NewAttributeValueMap(r.NewImage),
+		OldImage:                    NewAttributeValueMap(r.OldImage),
 		SequenceNumber:              r.SequenceNumber,
 		SizeBytes:                   r.SizeBytes,
 	}
@@ -140,34 +136,32 @@ func (s StreamRecord) GoString() string {
 // For more information, see Data Types (https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.NamingRulesDataTypes.html#HowItWorks.DataTypes)
 // in the Amazon DynamoDB Developer Guide.
 type AttributeValue struct {
-	_ struct{} `type:"structure"`
-
 	// An attribute of type Binary. For example:
 	//
 	// "B": "dGhpcyB0ZXh0IGlzIGJhc2U2NC1lbmNvZGVk"
 	//
 	// B is automatically base64 encoded/decoded by the SDK.
-	B []byte `type:"blob" json:"omitempty"`
+	B []byte `type:"blob" json:",omitempty"`
 
 	// An attribute of type Boolean. For example:
 	//
 	// "BOOL": true
-	BOOL *bool `type:"boolean" json:"omitempty"`
+	BOOL *bool `type:"boolean" json:",omitempty"`
 
 	// An attribute of type Binary Set. For example:
 	//
 	// "BS": ["U3Vubnk=", "UmFpbnk=", "U25vd3k="]
-	BS [][]byte `type:"list" json:"omitempty"`
+	BS [][]byte `type:"list" json:",omitempty"`
 
 	// An attribute of type List. For example:
 	//
 	// "L": [ {"S": "Cookies"} , {"S": "Coffee"}, {"N", "3.14159"}]
-	L []*dynamodb.AttributeValue `type:"list" json:"omitempty"`
+	L []*AttributeValue `type:"list" json:",omitempty"`
 
 	// An attribute of type Map. For example:
 	//
 	// "M": {"Name": {"S": "Joe"}, "Age": {"N": "35"}}
-	M map[string]*dynamodb.AttributeValue `type:"map" json:"omitempty"`
+	M map[string]*AttributeValue `type:"map" json:",omitempty"`
 
 	// An attribute of type Number. For example:
 	//
@@ -176,7 +170,7 @@ type AttributeValue struct {
 	// Numbers are sent across the network to DynamoDB as strings, to maximize compatibility
 	// across languages and libraries. However, DynamoDB treats them as number type
 	// attributes for mathematical operations.
-	N *string `type:"string" json:"omitempty"`
+	N *string `json:",omitempty"`
 
 	// An attribute of type Number Set. For example:
 	//
@@ -185,40 +179,53 @@ type AttributeValue struct {
 	// Numbers are sent across the network to DynamoDB as strings, to maximize compatibility
 	// across languages and libraries. However, DynamoDB treats them as number type
 	// attributes for mathematical operations.
-	NS []*string `type:"list" json:"omitempty"`
+	NS []*string `type:"list" json:",omitempty"`
 
 	// An attribute of type Null. For example:
 	//
 	// "NULL": true
-	NULL *bool `type:"boolean" json:"omitempty"`
+	NULL *bool `type:"boolean" json:",omitempty"`
 
 	// An attribute of type String. For example:
 	//
 	// "S": "Hello"
-	//S *string `type:"string" json:"omitempty"`
-	S *string `type:"string"`
+	S *string `json:",omitempty"`
 
 	// An attribute of type String Set. For example:
 	//
 	// "SS": ["Giraffe", "Hippo" ,"Zebra"]
-	SS []*string `type:"list" json:"omitempty"`
+	SS []*string `type:"list" json:",omitempty"`
 }
 
-func NewAttributeValue(m map[string]*dynamodb.AttributeValue) map[string]*AttributeValue {
+func NewAttributeValue(a *dynamodb.AttributeValue) *AttributeValue {
+	return &AttributeValue{
+		B:    a.B,
+		BOOL: a.BOOL,
+		BS:   a.BS,
+		L:    NewAttributeValueList(a.L),
+		M:    NewAttributeValueMap(a.M),
+		N:    a.N,
+		NS:   a.NS,
+		NULL: a.NULL,
+		S:    a.S,
+		SS:   a.SS,
+	}
+}
+
+func NewAttributeValueMap(m map[string]*dynamodb.AttributeValue) map[string]*AttributeValue {
 	r := make(map[string]*AttributeValue)
 	for k, v := range m {
-		r[k] = &AttributeValue{
-			B:    v.B,
-			BOOL: v.BOOL,
-			BS:   v.BS,
-			L:    v.L,
-			M:    v.M,
-			N:    v.N,
-			NS:   v.NS,
-			NULL: v.NULL,
-			S:    v.S,
-			SS:   v.SS,
-		}
+		vv := &v
+		r[k] = NewAttributeValue(*vv)
+	}
+	return r
+}
+
+func NewAttributeValueList(l []*dynamodb.AttributeValue) []*AttributeValue {
+	r := make([]*AttributeValue, len(l))
+	for _, a := range l {
+		aa := &a
+		r = append(r, NewAttributeValue(*aa))
 	}
 	return r
 }

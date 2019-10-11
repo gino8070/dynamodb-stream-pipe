@@ -74,12 +74,11 @@ func (a *App) Run() error {
 		itr = gro.NextShardIterator
 		log.Printf("num records: %d", len(gro.Records))
 		for _, r := range gro.Records {
-			pr := NewRecord(r)
-			prs, _ := json.MarshalIndent(pr, "", "    ")
-			log.Printf("record: %s", prs)
+			rj, _ := json.MarshalIndent(NewRecord(r), "", "  ")
+			log.Printf("record: \n%s", rj)
 			cmd := exec.Command(a.command, a.args...)
 			stdin, _ := cmd.StdinPipe()
-			io.WriteString(stdin, string(prs))
+			io.WriteString(stdin, string(rj))
 			stdin.Close()
 			out, err := cmd.Output()
 			if err != nil {
