@@ -84,13 +84,13 @@ type StreamRecord struct {
 	ApproximateCreationDateTime *int64 `type:"long"`
 
 	// The primary key attribute(s) for the DynamoDB item that was modified.
-	Keys map[string]*dynamodb.AttributeValue `type:"map"`
+	Keys map[string]*AttributeValue `type:"map"`
 
 	// The item in the DynamoDB table as it appeared after it was modified.
-	NewImage map[string]*dynamodb.AttributeValue `type:"map"`
+	NewImage map[string]*AttributeValue `type:"map"`
 
 	// The item in the DynamoDB table as it appeared before it was modified.
-	OldImage map[string]*dynamodb.AttributeValue `type:"map"`
+	OldImage map[string]*AttributeValue `type:"map"`
 
 	// The sequence number of the stream record.
 	SequenceNumber *string `min:"21" type:"string"`
@@ -114,9 +114,9 @@ type StreamRecord struct {
 func NewStreamRecord(r *dynamodbstreams.StreamRecord) *StreamRecord {
 	return &StreamRecord{
 		ApproximateCreationDateTime: aws.Int64(r.ApproximateCreationDateTime.Unix()),
-		Keys:                        r.Keys,
-		NewImage:                    r.NewImage,
-		OldImage:                    r.OldImage,
+		Keys:                        NewAttributeValue(r.Keys),
+		NewImage:                    NewAttributeValue(r.NewImage),
+		OldImage:                    NewAttributeValue(r.OldImage),
 		SequenceNumber:              r.SequenceNumber,
 		SizeBytes:                   r.SizeBytes,
 	}
@@ -129,5 +129,107 @@ func (s StreamRecord) String() string {
 
 // GoString returns the string representation
 func (s StreamRecord) GoString() string {
+	return s.String()
+}
+
+// Represents the data for an attribute.
+//
+// Each attribute value is described as a name-value pair. The name is the data
+// type, and the value is the data itself.
+//
+// For more information, see Data Types (https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.NamingRulesDataTypes.html#HowItWorks.DataTypes)
+// in the Amazon DynamoDB Developer Guide.
+type AttributeValue struct {
+	_ struct{} `type:"structure"`
+
+	// An attribute of type Binary. For example:
+	//
+	// "B": "dGhpcyB0ZXh0IGlzIGJhc2U2NC1lbmNvZGVk"
+	//
+	// B is automatically base64 encoded/decoded by the SDK.
+	B []byte `type:"blob" json:"omitempty"`
+
+	// An attribute of type Boolean. For example:
+	//
+	// "BOOL": true
+	BOOL *bool `type:"boolean" json:"omitempty"`
+
+	// An attribute of type Binary Set. For example:
+	//
+	// "BS": ["U3Vubnk=", "UmFpbnk=", "U25vd3k="]
+	BS [][]byte `type:"list" json:"omitempty"`
+
+	// An attribute of type List. For example:
+	//
+	// "L": [ {"S": "Cookies"} , {"S": "Coffee"}, {"N", "3.14159"}]
+	L []*dynamodb.AttributeValue `type:"list" json:"omitempty"`
+
+	// An attribute of type Map. For example:
+	//
+	// "M": {"Name": {"S": "Joe"}, "Age": {"N": "35"}}
+	M map[string]*dynamodb.AttributeValue `type:"map" json:"omitempty"`
+
+	// An attribute of type Number. For example:
+	//
+	// "N": "123.45"
+	//
+	// Numbers are sent across the network to DynamoDB as strings, to maximize compatibility
+	// across languages and libraries. However, DynamoDB treats them as number type
+	// attributes for mathematical operations.
+	N *string `type:"string" json:"omitempty"`
+
+	// An attribute of type Number Set. For example:
+	//
+	// "NS": ["42.2", "-19", "7.5", "3.14"]
+	//
+	// Numbers are sent across the network to DynamoDB as strings, to maximize compatibility
+	// across languages and libraries. However, DynamoDB treats them as number type
+	// attributes for mathematical operations.
+	NS []*string `type:"list" json:"omitempty"`
+
+	// An attribute of type Null. For example:
+	//
+	// "NULL": true
+	NULL *bool `type:"boolean" json:"omitempty"`
+
+	// An attribute of type String. For example:
+	//
+	// "S": "Hello"
+	//S *string `type:"string" json:"omitempty"`
+	S *string `type:"string"`
+
+	// An attribute of type String Set. For example:
+	//
+	// "SS": ["Giraffe", "Hippo" ,"Zebra"]
+	SS []*string `type:"list" json:"omitempty"`
+}
+
+func NewAttributeValue(m map[string]*dynamodb.AttributeValue) map[string]*AttributeValue {
+	r := make(map[string]*AttributeValue)
+	for k, v := range m {
+		r[k] = &AttributeValue{
+			B:    v.B,
+			BOOL: v.BOOL,
+			BS:   v.BS,
+			L:    v.L,
+			M:    v.M,
+			N:    v.N,
+			NS:   v.NS,
+			NULL: v.NULL,
+			S:    v.S,
+			//S:  aws.String("hoge"),
+			SS: v.SS,
+		}
+	}
+	return r
+}
+
+// String returns the string representation
+func (s AttributeValue) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AttributeValue) GoString() string {
 	return s.String()
 }
