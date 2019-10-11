@@ -17,3 +17,10 @@ Use with DynamoDB Local
 AWS_REGION=us-east-1 AWS_ACCESS_KEY_ID=xxxx AWS_SECRET_ACCESS_KEY=xxxx \
 go run cmd/pipe/main.go --table table_name --command=wc --args=-l --endpoint=http://localhost:8883
 ```
+
+Example of execution sam cli
+
+```bash
+AWS_REGION=us-east-1 AWS_ACCESS_KEY_ID=xxxx AWS_SECRET_ACCESS_KEY=xxxx \
+go run cmd/pipe/main.go --table table_name --command=sam --args=local,invoke,function_name --endpoint=http://localhost:8883
+```
