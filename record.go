@@ -217,8 +217,7 @@ func NewAttributeValue(m map[string]*dynamodb.AttributeValue) map[string]*Attrib
 			NS:   v.NS,
 			NULL: v.NULL,
 			S:    v.S,
-			//S:  aws.String("hoge"),
-			SS: v.SS,
+			SS:   v.SS,
 		}
 	}
 	return r
