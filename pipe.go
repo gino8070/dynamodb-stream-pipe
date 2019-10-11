@@ -80,7 +80,7 @@ func (a *App) Run() error {
 			stdin, _ := cmd.StdinPipe()
 			io.WriteString(stdin, string(rj))
 			stdin.Close()
-			out, err := cmd.Output()
+			out, err := cmd.CombinedOutput()
 			if err != nil {
 				return errors.Wrap(err, "failed cmd")
 			}
