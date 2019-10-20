@@ -7,6 +7,12 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodbstreams"
 )
 
+// The DynamoDBEvent stream event handled to Lambda
+// http://docs.aws.amazon.com/lambda/latest/dg/eventsources.html#eventsources-ddb-update
+type DynamoDBEvent struct {
+	Records []*Record `json:"Records"`
+}
+
 // A description of a unique event within a stream.
 type Record struct {
 	// The region in which the GetRecords request was received.
@@ -40,6 +46,10 @@ type Record struct {
 	// value, as this number is subject to change at any time. In general, eventVersion
 	// will only increase as the low-level DynamoDB Streams API evolves.
 	EventVersion *string `locationName:"eventVersion" type:"string"`
+
+	// The event source ARN of DynamoDB
+	// "arn:aws:dynamodb:us-east-1:123456789012:table/ExampleTableWithStream/stream/2015-06-27T00:48:05.899"
+	EventSourceArn *string `json:"eventSourceARN"`
 
 	// Items that are deleted by the Time to Live process after expiration have
 	// the following fields:
