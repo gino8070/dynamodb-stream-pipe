@@ -90,13 +90,13 @@ type StreamRecord struct {
 	ApproximateCreationDateTime *int64 `type:"long"`
 
 	// The primary key attribute(s) for the DynamoDB item that was modified.
-	Keys map[string]*AttributeValue `type:"map" json:",omitempty"`
+	Keys map[string]interface{} `type:"map" json:",omitempty"`
 
 	// The item in the DynamoDB table as it appeared after it was modified.
-	NewImage map[string]*AttributeValue `type:"map" json:",omitempty"`
+	NewImage map[string]interface{} `type:"map" json:",omitempty"`
 
 	// The item in the DynamoDB table as it appeared before it was modified.
-	OldImage map[string]*AttributeValue `type:"map" json:",omitempty"`
+	OldImage map[string]interface{} `type:"map" json:",omitempty"`
 
 	// The sequence number of the stream record.
 	SequenceNumber *string `min:"21" type:"string"`
@@ -138,114 +138,114 @@ func (s StreamRecord) GoString() string {
 	return s.String()
 }
 
-// Represents the data for an attribute.
-//
-// Each attribute value is described as a name-value pair. The name is the data
-// type, and the value is the data itself.
-//
-// For more information, see Data Types (https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.NamingRulesDataTypes.html#HowItWorks.DataTypes)
-// in the Amazon DynamoDB Developer Guide.
-type AttributeValue struct {
-	// An attribute of type Binary. For example:
-	//
-	// "B": "dGhpcyB0ZXh0IGlzIGJhc2U2NC1lbmNvZGVk"
-	//
-	// B is automatically base64 encoded/decoded by the SDK.
-	B []byte `type:"blob" json:",omitempty"`
-
-	// An attribute of type Boolean. For example:
-	//
-	// "BOOL": true
-	BOOL *bool `type:"boolean" json:",omitempty"`
-
-	// An attribute of type Binary Set. For example:
-	//
-	// "BS": ["U3Vubnk=", "UmFpbnk=", "U25vd3k="]
-	BS [][]byte `type:"list" json:",omitempty"`
-
-	// An attribute of type List. For example:
-	//
-	// "L": [ {"S": "Cookies"} , {"S": "Coffee"}, {"N", "3.14159"}]
-	L []*AttributeValue `type:"list" json:",omitempty"`
-
-	// An attribute of type Map. For example:
-	//
-	// "M": {"Name": {"S": "Joe"}, "Age": {"N": "35"}}
-	M map[string]*AttributeValue `type:"map" json:",omitempty"`
-
-	// An attribute of type Number. For example:
-	//
-	// "N": "123.45"
-	//
-	// Numbers are sent across the network to DynamoDB as strings, to maximize compatibility
-	// across languages and libraries. However, DynamoDB treats them as number type
-	// attributes for mathematical operations.
-	N *string `json:",omitempty"`
-
-	// An attribute of type Number Set. For example:
-	//
-	// "NS": ["42.2", "-19", "7.5", "3.14"]
-	//
-	// Numbers are sent across the network to DynamoDB as strings, to maximize compatibility
-	// across languages and libraries. However, DynamoDB treats them as number type
-	// attributes for mathematical operations.
-	NS []*string `type:"list" json:",omitempty"`
-
-	// An attribute of type Null. For example:
-	//
-	// "NULL": true
-	NULL *bool `type:"boolean" json:",omitempty"`
-
-	// An attribute of type String. For example:
-	//
-	// "S": "Hello"
-	S *string `json:",omitempty"`
-
-	// An attribute of type String Set. For example:
-	//
-	// "SS": ["Giraffe", "Hippo" ,"Zebra"]
-	SS []*string `type:"list" json:",omitempty"`
+type AttributeValueB struct {
+	B []byte `type:"blob"`
 }
 
-func NewAttributeValue(a *dynamodb.AttributeValue) *AttributeValue {
-	return &AttributeValue{
-		B:    a.B,
-		BOOL: a.BOOL,
-		BS:   a.BS,
-		L:    NewAttributeValueList(a.L),
-		M:    NewAttributeValueMap(a.M),
-		N:    a.N,
-		NS:   a.NS,
-		NULL: a.NULL,
-		S:    a.S,
-		SS:   a.SS,
+type AttributeValueBOOL struct {
+	BOOL *bool `type:"boolean"`
+}
+
+type AttributeValueBS struct {
+	BS [][]byte `type:"list"`
+}
+
+type AttributeValueL struct {
+	L []interface{} `type:"list"`
+}
+
+type AttributeValueM struct {
+	M map[string]interface{} `type:"map"`
+}
+
+type AttributeValueN struct {
+	N *string
+}
+
+type AttributeValueNS struct {
+	NS []*string `type:"list"`
+}
+
+type AttributeValueNULL struct {
+	NULL *bool `type:"boolean"`
+}
+
+type AttributeValueS struct {
+	S *string
+}
+
+type AttributeValueSS struct {
+	SS []*string `type:"list"`
+}
+
+func NewAttributeValue(a *dynamodb.AttributeValue) interface{} {
+	if a.B != nil {
+		return AttributeValueB{
+			B: a.B,
+		}
 	}
+	if a.BOOL != nil {
+		return AttributeValueBOOL{
+			BOOL: a.BOOL,
+		}
+	}
+	if a.BS != nil {
+		return AttributeValueBS{
+			BS: a.BS,
+		}
+	}
+	if a.N != nil {
+		return AttributeValueN{
+			N: a.N,
+		}
+	}
+	if a.NS != nil {
+		return AttributeValueNS{
+			NS: a.NS,
+		}
+	}
+	if a.NULL != nil {
+		return AttributeValueNULL{
+			NULL: a.NULL,
+		}
+	}
+	if a.S != nil {
+		return AttributeValueS{
+			S: a.S,
+		}
+	}
+	if a.SS != nil {
+		return AttributeValueSS{
+			SS: a.SS,
+		}
+	}
+	if a.L != nil {
+		return AttributeValueL{
+			L: NewAttributeValueList(a.L),
+		}
+	}
+	if a.M != nil {
+		return AttributeValueM{
+			M: NewAttributeValueMap(a.M),
+		}
+	}
+	return nil
 }
 
-func NewAttributeValueMap(m map[string]*dynamodb.AttributeValue) map[string]*AttributeValue {
-	r := make(map[string]*AttributeValue)
+func NewAttributeValueMap(m map[string]*dynamodb.AttributeValue) map[string]interface{} {
+	r := make(map[string]interface{})
 	for k, v := range m {
-		vv := &v
-		r[k] = NewAttributeValue(*vv)
+		vv := v
+		r[k] = NewAttributeValue(vv)
 	}
 	return r
 }
 
-func NewAttributeValueList(l []*dynamodb.AttributeValue) []*AttributeValue {
-	r := make([]*AttributeValue, len(l))
+func NewAttributeValueList(l []*dynamodb.AttributeValue) []interface{} {
+	r := make([]interface{}, len(l))
 	for idx, a := range l {
-		aa := &a
-		r[idx] = NewAttributeValue(*aa)
+		aa := a
+		r[idx] = NewAttributeValue(aa)
 	}
 	return r
-}
-
-// String returns the string representation
-func (s AttributeValue) String() string {
-	return awsutil.Prettify(s)
-}
-
-// GoString returns the string representation
-func (s AttributeValue) GoString() string {
-	return s.String()
 }
