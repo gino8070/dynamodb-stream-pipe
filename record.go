@@ -233,9 +233,9 @@ func NewAttributeValueMap(m map[string]*dynamodb.AttributeValue) map[string]*Att
 
 func NewAttributeValueList(l []*dynamodb.AttributeValue) []*AttributeValue {
 	r := make([]*AttributeValue, len(l))
-	for _, a := range l {
+	for idx, a := range l {
 		aa := &a
-		r = append(r, NewAttributeValue(*aa))
+		r[idx] = NewAttributeValue(*aa)
 	}
 	return r
 }
